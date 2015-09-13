@@ -19,3 +19,5 @@ libraryDependencies += "org.http4s" %% "http4s-argonaut" % "0.10.0"  // to use t
 libraryDependencies += "io.argonaut" %% "argonaut" % "6.0.4"
 
 oneJarSettings
+
+scalariformSettings

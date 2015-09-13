@@ -1,26 +1,27 @@
+package net.fgsquad.rimbot
+
 object Botrun {
   def main(args: Array[String]) {
-    val stream = "fgsquared"
+    val stream = "the name of the stream"
+    val name = "username"
+    val auth = "oath token in the form oauth:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+    val host = "irc.twitch.tv"
+    val port = 6667
+    
     def channel = s"#$stream"
 
-    val bot = new Rimbot("fgsrimbot", channel, Chattersclient.moderators(stream))
-    bot.setMessageDelay(2000)
-  
-    // Enable debugging output.
-    bot.setVerbose(true);
+    val setup = new BotSetup(name)
 
-    // Connect to the IRC server.
-    bot.connect("irc.twitch.tv", 6667,"oauth:1th9pvbg393c9fw5yhmpo7ect6d8ej");
+    setup.bot.setMessageDelay(2000)
 
-    //bot.changeNick("HeartyMarty")
+    setup.bot.setVerbose(true);
 
-    // Join the #pircbot channel.
-    bot.joinChannel(channel);
-    //await termination
+    setup.bot.connect(host, port, auth);
 
-    bot.sendMessage(channel, "Rimbot represent!")
+    val fg = new FGSquaredHandler
 
-    //bot.sendChannel("#FGSqured", "Rimbot in da house")
-  
+    setup.join(stream, fg.rcv);
+
   }
 }
