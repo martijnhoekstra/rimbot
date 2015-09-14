@@ -15,15 +15,23 @@
   along with Rimbot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package net.fgsquad
+package net.fgsquad.rimbot
 
-import scalaz.concurrent.Task
-import org.jibble.pircbot._
+class BotSetup(name: String) {
+  val dispatch: collection.mutable.Map[String, MsgReceived] = collection.mutable.Map[String, MsgReceived]()
 
-package object rimbot {
-  type MsgReceived = PircBot => String => Message => Task[Unit]
+  val bot = new ChannelRimbot(name, dispatch)
 
-  def parseInt(str: String): Option[Int] = try { Some(str.toInt) } catch { case _: Throwable => None }
+  def join(stream: String, rcv: MsgReceived) = {
+    val channel = s"#$stream"
+    dispatch += ((channel, rcv))
+    bot.joinChannel(channel);
+    bot.sendMessage(channel, "Rimbot represent!")
+  }
 
-  case class Message(sender: String, login: String, hostname: String, content: String)
+  def part(stream: String) = {
+    val channel = s"#$stream"
+    dispatch -= channel
+    bot.partChannel(channel)
+  }
 }
