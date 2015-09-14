@@ -17,23 +17,6 @@
 
 package net.fgsquad.rimbot
 
-class Queue[A](val in: List[A], val out: List[A]) {
-  def enqueue(a: A) = new Queue(a :: in, out)
-  def dequeue: Option[(A, Queue[A])] = (in, out) match {
-    case (_, head :: tail) => Some(head, new Queue(in, tail))
-    case (Nil, Nil) => None
-    case _ => new Queue(Nil, in.reverse).dequeue
-  }
-  def any(predicate: A => Boolean) = in.exists(predicate) || out.exists(predicate)
-  override def equals(that: Any): Boolean = {
-    if (that.isInstanceOf[Queue[A]]) {
-      val other = that.asInstanceOf[Queue[A]]
-      this.dequeue == other.dequeue
-    } else false
-  }
-
-}
-
 case class Colony(val ingame: List[String], val ded: List[String], val queue: Queue[String])
 
 object Colony {
@@ -63,12 +46,12 @@ object Colony {
       case head :: Nil => Some(s"$head has met their demise.")
       case _ => Some(s"${showstring(colony.ded)} are ded.")
     }
-    val totalqueue = colony.queue.out ++ colony.queue.in.reverse
+    val totalqueue = colony.queue.toList
 
     val queueline = totalqueue match {
       case Nil => "Nobody is queued up to join the colony."
       case head :: Nil => s"Only $head is queued to join the colony."
-      case _ => s"${showstring(colony.queue.out ::: colony.queue.in.reverse)} are waiting in line to join their doom. Eh, the colony."
+      case _ => s"${showstring(totalqueue)} are waiting in line to join their doom. Eh, the colony."
     }
 
     ingame :: dead.foldLeft(List(queueline))((agg, dedline) => dedline :: agg)
@@ -87,5 +70,5 @@ object Colony {
   def recruit(colony: Colony): Option[(String, Colony)] =
     colony.queue.dequeue.map { case (colonist, newqueue) => (colonist, new Colony(colonist :: colony.ingame, colony.ded, newqueue)) }
 
-  def apply() = new Colony(Nil, Nil, new Queue[String](Nil, Nil))
+  def apply() = new Colony(Nil, Nil, Queue.empty)
 }

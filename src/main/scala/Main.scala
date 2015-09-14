@@ -25,7 +25,7 @@ object Botrun {
 
     val host = "irc.twitch.tv"
     val port = 6667
-    
+
     def channel = s"#$stream"
 
     val setup = new BotSetup(name)
