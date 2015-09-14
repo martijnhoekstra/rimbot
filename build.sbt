@@ -1,22 +1,33 @@
 import com.github.retronym.SbtOneJar._
 
+name := "rimbot"
+
+version := "0.1.2-SNAPSHOT"
+
+scalaVersion := "2.11.7"
+
 resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 
-libraryDependencies += "pircbot" % "pircbot" % "1.5.0"
+lazy val http4sversion = "0.10.0"
 
-//libraryDependencies += "org.http4s" %% "http4s-dsl"          % "0.10.0"  // to use the core dsl
+lazy val scalazVersion = "7.1.3"
 
-//libraryDependencies += "org.http4s" %% "http4s-blaze-server" % "0.10.0"  // to use the blaze backend
+libraryDependencies ++= Seq(
+"pircbot" % "pircbot" % "1.5.0",
+"org.http4s" %% "http4s-dsl" % http4sversion,
+"org.http4s" %% "http4s-blaze-server" % http4sversion,
+"org.http4s" %% "http4s-blaze-client" % http4sversion,
+"org.http4s" %% "http4s-argonaut" % http4sversion,
+"io.argonaut" %% "argonaut" % "6.0.4",
+"org.scalaz" %% "scalaz-core" % scalazVersion,
+"org.scalaz" %% "scalaz-effect" % scalazVersion,
+"org.scalaz" %% "scalaz-typelevel" % scalazVersion,
+"org.scalacheck" %% "scalacheck" % "1.12.5" % "test",
+"org.scalaz" %% "scalaz-scalacheck-binding" % scalazVersion % "test",
+"org.specs2" %% "specs2-core" % "3.6.4" % "test"
+)
 
-//libraryDependencies += "org.http4s" %% "http4s-servlet"      % "0.10.0"  // to use the raw servlet backend
-
-//libraryDependencies += "org.http4s" %% "http4s-jetty"        % "0.10.0"  // to use the jetty servlet backend
-
-libraryDependencies += "org.http4s" %% "http4s-blaze-client" % "0.10.0"  // to use the blaze client
-
-libraryDependencies += "org.http4s" %% "http4s-argonaut" % "0.10.0"  // to use the blaze client
-
-libraryDependencies += "io.argonaut" %% "argonaut" % "6.0.4"
+scalacOptions in Test ++= Seq("-Yrangepos")
 
 oneJarSettings
 

@@ -36,10 +36,10 @@ object Colony {
   }
 
   def show(colony: Colony): List[String] = {
-    val ingame = if (colony.ingame.isEmpty) "There are no viewer colonists in game."
-    else colony.ingame match {
-      case one :: two :: rest => s"colonists ${showstring(colony.ingame)} represent chat in this colony."
+    val ingame = colony.ingame match {
+      case Nil => "There are no viewer colonists in game."
       case colonist :: Nil => s"lone colonist $colonist represents chat in this colony."
+      case _ => s"colonists ${showstring(colony.ingame)} represent chat in this colony."
     }
     val dead = colony.ded match {
       case Nil => None

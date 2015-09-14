@@ -18,17 +18,17 @@
 package net.fgsquad.rimbot
 
 import scalaz.Monoid
+import scalaz.Monad
 import scalaz.MonadPlus
 import scalaz.Equal
+import scala.annotation.tailrec
 
 object QueueOps {
+  import scalaz.std.list._
   implicit def queueMonoid[A]: Monoid[Queue[A]] = new Monoid[Queue[A]] {
     def zero = Queue.empty
     def append(q1: Queue[A], q2: => Queue[A]): Queue[A] =
-      q2.dequeue match {
-        case None => q1
-        case Some((a, rest)) => append(rest, q1.enqueue(a))
-      }
+      new DoubleListQueue(q2.toList.reverse, q1.toList)
   }
 
   implicit def QueueMonad: MonadPlus[Queue] = new MonadPlus[Queue] {
@@ -36,7 +36,16 @@ object QueueOps {
 
     def bind[A, B](fa: Queue[A])(f: A => Queue[B]): Queue[B] = fa.dequeue match {
       case None => Queue.empty
-      case Some((a, rest)) => plus(f(a), bind(rest)(f))
+      case Some((a, rest)) => {
+        @tailrec
+        def rec(agg: Queue[B], remain: Queue[A]): Queue[B] = {
+          remain.dequeue match {
+            case Some((a, q)) => rec(queueMonoid[B].append(agg, f(a)), q)
+            case None => agg
+          }
+        }
+        rec(Queue.empty, fa)
+      }
     }
 
     def plus[A](a: Queue[A], b: => Queue[A]): Queue[A] = queueMonoid[A].append(a, b)
@@ -82,6 +91,8 @@ class DoubleListQueue[+A](val in: List[A], val out: List[A]) extends Queue[A] {
   def any(predicate: A => Boolean) = in.exists(predicate) || out.exists(predicate)
 
   def toList = out ::: in.reverse
+
+  override def toString = toList.toString
 
 }
 
