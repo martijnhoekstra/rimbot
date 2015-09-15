@@ -17,28 +17,57 @@
 
 package net.fgsquad.rimbot
 
+import jline.console.ConsoleReader
+
 object Botrun {
+  def getConfig: Option[Config] = Config.readConfig("settings.json")
+
   def main(args: Array[String]) {
-    val stream = "the name of the stream"
-    val name = "username"
-    val auth = "oath token in the form oauth:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    var arglist = args.toList
+
+    val config = getConfig
+    val nomask: Character = null
+    val passmask = '*'
+
+    val reader = new ConsoleReader()
+
+    val verbose = config.map(c => c.verbose).getOrElse(true)
+
+    val (name, stream, auth) = {
+      val no = config.flatMap(c => c.botname)
+      val so = config.flatMap(c => c.channel)
+      val ao = config.flatMap(c => c.token)
+
+      (
+        no.getOrElse(reader.readLine("bot login name> ", nomask)),
+        so.getOrElse(reader.readLine("stream name> ", nomask)),
+        ao.getOrElse(reader.readLine("oauth token> ", passmask))
+      )
+    }
+
+    val fulltoken = "oauth:" + auth
 
     val host = "irc.twitch.tv"
     val port = 6667
 
-    def channel = s"#$stream"
+    val channel = s"#$stream"
 
     val setup = new BotSetup(name)
 
     setup.bot.setMessageDelay(2000)
 
-    setup.bot.setVerbose(true);
+    setup.bot.setVerbose(verbose);
 
-    setup.bot.connect(host, port, auth);
+    setup.bot.connect(host, port, fulltoken);
 
     val fg = new FGSquaredHandler
 
     setup.join(stream, fg.rcv);
+
+    val exit = reader.readLine("press enter to exit")
+
+    setup.bot.disconnect()
+    setup.bot.dispose()
 
   }
 }

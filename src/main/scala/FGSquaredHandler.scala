@@ -31,6 +31,8 @@ class FGSquaredHandler {
 
     def reply(msg: String) = bot.sendMessage(channel, msg)
 
+    //def reply(msg: String) = bot.sendMessage("HeartyMarty", msg)
+
     def asMod[T](user: String) = Handling.asMod[T](bot, channel, moderators)(mods, user)
 
     def runmod[T](user: String)(action: => T): Task[Option[T]] = asMod(user)(Task.delay(action)).map(t => {

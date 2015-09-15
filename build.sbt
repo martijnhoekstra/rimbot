@@ -12,7 +12,10 @@ lazy val http4sversion = "0.10.0"
 
 lazy val scalazVersion = "7.1.3"
 
+scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation", "-feature")
+
 libraryDependencies ++= Seq(
+"jline" % "jline" % "2.13",
 "pircbot" % "pircbot" % "1.5.0",
 "org.http4s" %% "http4s-dsl" % http4sversion,
 "org.http4s" %% "http4s-blaze-server" % http4sversion,
