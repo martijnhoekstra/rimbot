@@ -21,17 +21,15 @@ import org.jibble.pircbot._
 import scalaz.concurrent.Task
 import Colony._
 
-class FGSquaredHandler {
+class FGSquaredHandler(startingcolony: Colony) {
 
-  var colony: Colony = Colony()
+  var colony: Colony = startingcolony
   var mods: List[String] = List.empty[String]
 
   val rcv: MsgReceived = (bot: PircBot) => (channel: String) => {
     def moderators = Chattersclient.moderators(channel.substring(1))
 
     def reply(msg: String) = bot.sendMessage(channel, msg)
-
-    //def reply(msg: String) = bot.sendMessage("HeartyMarty", msg)
 
     def asMod[T](user: String) = Handling.asMod[T](bot, channel, moderators)(mods, user)
 

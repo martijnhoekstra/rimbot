@@ -31,6 +31,8 @@ object Botrun {
 
     val reader = new ConsoleReader()
 
+    val colonyfile = "colony.json"
+
     val verbose = config.map(c => c.verbose).getOrElse(true)
 
     val (name, stream, auth) = {
@@ -60,11 +62,16 @@ object Botrun {
 
     setup.bot.connect(host, port, fulltoken);
 
-    val fg = new FGSquaredHandler
+    val colonypickler = persist.ColonyPickler.pickler
+
+    val ocolony = colonypickler.unpickle("colonyfile")
+
+    val fg = new FGSquaredHandler(ocolony.getOrElse(Colony()))
 
     setup.join(stream, fg.rcv);
 
     val exit = reader.readLine("press enter to exit")
+    colonypickler.pickle(fg.colony, colonyfile).recover { case ex => reader.println(s"failed to write out colony: ${ex.getMessage()}") }
 
     setup.bot.disconnect()
     setup.bot.dispose()

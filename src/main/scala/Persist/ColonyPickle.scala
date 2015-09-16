@@ -15,18 +15,24 @@
   along with Rimbot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package net.fgsquad.rimbot
+package net.fgsquad.rimbot.persist
 
 import argonaut._
 import Argonaut._
 
-case class Config(botname: Option[String], channel: Option[String], token: Option[String], verbose: Boolean)
+import net.fgsquad.rimbot.Colony
+import net.fgsquad.rimbot.DoubleListQueue
 
-object Config {
-  import persist.FilePickle
+object ColonyPickler {
+  private[this] case class ColonyPickle(alive: List[String], dead: List[String], queue: List[String])
+  private[this] def pkcodec = casecodec3(ColonyPickle.apply, ColonyPickle.unapply)("alive", "dead", "queue")
 
-  def readConfig(path: String) = {
-    implicit def PersonCodecJson = casecodec4(Config.apply, Config.unapply)("botname", "channel", "token", "verbose")
-    FilePickle.jsonpickle[Config].unpickle("settings.json")
-  }
+  implicit def ColonyCodec = pkcodec.xmap(
+    pk => Colony(pk.alive, pk.dead, new DoubleListQueue(Nil, pk.queue))
+  )(
+      col => ColonyPickle(col.ingame, col.ded, col.queue.toList)
+    )
+
+  def pickler = FilePickle.jsonpickle[Colony]
+
 }
