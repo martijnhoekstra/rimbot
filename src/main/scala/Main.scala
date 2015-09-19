@@ -18,18 +18,31 @@
 package net.fgsquad.rimbot
 
 import jline.console.ConsoleReader
+import scala.util.Try
+import scala.util.Success
+import scala.util.Failure
 
 object Botrun {
-  def getConfig: Option[Config] = Config.readConfig("settings.json")
 
   def main(args: Array[String]) {
+    val settingsfile = "settings.json"
+
+    def getConfig: Try[Config] = Config.readConfig(settingsfile)
+
     var arglist = args.toList
 
-    val config = getConfig
     val nomask: Character = null
     val passmask = '*'
 
     val reader = new ConsoleReader()
+
+    val config = getConfig match {
+      case Success(cf) => Some(cf)
+      case Failure(er) => {
+        reader.println(s"faild to oppen settins file $settingsfile")
+        None
+      }
+    }
 
     val colonyfile = "colony.json"
 

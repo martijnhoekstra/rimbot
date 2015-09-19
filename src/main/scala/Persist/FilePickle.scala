@@ -15,7 +15,7 @@
   along with Rimbot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package net.fgsquad.rimbot
+package net.fgsquad.rimbot.persist
 
 import java.io.PrintWriter
 import scala.util.Try
@@ -24,16 +24,14 @@ import scala.util.Failure
 
 trait FilePickle[A] {
   def pickle(a: A, file: String): Try[Unit]
-  def unpickle(file: String): Option[A]
+  def unpickle(file: String): Try[A]
+
   def printToFile[A](f: String)(op: PrintWriter => A): Try[A] = {
-    val p = new PrintWriter(f)
-    try {
-      Success(op(p))
-    } catch {
-      case t: Throwable => Failure(t)
-    } finally {
-      p.close()
-    }
+    val p = Try { new PrintWriter(f, "utf-8") }
+    val res = p.flatMap(pp => Try { op(pp) })
+    p.map(pp => pp.close())
+    p.isSuccess
+    res
   }
 }
 
@@ -41,14 +39,15 @@ object FilePickle {
   import argonaut._
   import Argonaut._
 
+  def trydecode[A](str: String, dec: DecodeJson[A]): Try[A] = {
+    import scalaz.Validation
+    val dres: Validation[String, A] = str.decodeValidation[A](dec)
+    dres.fold[Try[A]]((s: String) => Failure(new Exception(s)), a => Success(a))
+  }
+
   def jsonpickle[A](implicit ev: CodecJson[A]) = new FilePickle[A] {
-    implicit def dec: DecodeJson[A] = ev
-    implicit def enc: EncodeJson[A] = ev
     def pickle(a: A, file: String): Try[Unit] = printToFile(file)(printer => printer.write(ev.encode(a).spaces2))
-    def unpickle(f: String) = {
-      val str = scala.io.Source.fromFile(f, "utf-8").getLines.mkString
-      str.decodeOption[A](dec)
-    }
+    def unpickle(f: String): Try[A] = (Try { scala.io.Source.fromFile(f, "utf-8").getLines.mkString }).flatMap(str => trydecode(str, ev))
 
   }
 
