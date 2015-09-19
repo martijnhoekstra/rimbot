@@ -41,7 +41,7 @@ class FGSquaredHandler {
     })
 
     (msg: Message) => {
-      val words = msg.content.split(" ").toList
+      val words = msg.content.split(" ").toList.map(_.toLowerCase) //case is locale dependent, but the only aim here is to canonize
       val sender = msg.sender
       val task = words match {
         case "!ded" :: casualty :: others => runmod(msg.sender) {
