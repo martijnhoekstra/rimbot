@@ -77,9 +77,15 @@ object Botrun {
 
     val colonypickler = persist.ColonyPickler.pickler
 
-    val ocolony = colonypickler.unpickle("colonyfile")
+    val colony = colonypickler.unpickle(colonyfile).recover {
+      case err => {
+        setup.bot.log("*********Error loading colony file************")
+        setup.bot.log(err.getMessage())
+        Colony()
+      }
+    }.get
 
-    val fg = new FGSquaredHandler(ocolony.getOrElse(Colony()))
+    val fg = new FGSquaredHandler(colony)
 
     setup.join(stream, fg.rcv);
 
