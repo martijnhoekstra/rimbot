@@ -61,7 +61,7 @@ object Colony {
     val ingame = colony.ingame match {
       case Nil => "There are no viewer colonists in game."
       case colonist :: Nil => s"Lone colonist $colonist represents chat in this colony."
-      case _ => s"There are ${colony.ingame.length} colonists in the colony"
+      case _ => s"There are ${colony.ingame.length} colonists in the colony."
     }
 
     val dead = colony.ded match {

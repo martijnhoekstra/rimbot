@@ -72,7 +72,7 @@ class FGSquaredHandler(startingcolony: Colony) {
             }
           else runmod(msg.sender) {
             val (ncolony, results) = colonists.foldLeft((colony, List.empty[(String, Option[String])])) {
-              case ((acolony, aresults), colonist) => joinqueue(colony)(colonist) match {
+              case ((acolony, aresults), colonist) => joinqueue(acolony)(colonist) match {
                 case Left(error) => (acolony, (colonist, Some(error)) :: aresults)
                 case Right(ncol) => (ncol, (colonist, None) :: aresults)
               }
