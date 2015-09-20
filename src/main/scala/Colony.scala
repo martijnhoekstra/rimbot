@@ -22,7 +22,7 @@ case class Colony(val ingame: List[String], val ded: List[String], val queue: Qu
 object Colony {
   def showstring(seq: Seq[String]): String = {
     seq.toList match {
-      case last :: next :: tail => (next :: tail).mkString(", ") + " and " + last
+      case last :: next :: tail => seq.reverse.tail.reverse.mkString(", ") ++ " and " ++ seq.head
       case head :: Nil => head
       case _ => "nobody"
     }
@@ -55,6 +55,32 @@ object Colony {
     }
 
     ingame :: dead.foldLeft(List(queueline))((agg, dedline) => dedline :: agg)
+  }
+
+  def showcompact(colony: Colony) = {
+    val ingame = colony.ingame match {
+      case Nil => "There are no viewer colonists in game."
+      case colonist :: Nil => s"Lone colonist $colonist represents chat in this colony."
+      case _ => s"There are ${colony.ingame.length} colonists in the colony"
+    }
+
+    val dead = colony.ded match {
+      case Nil => None
+      case head :: Nil => Some(s"$head has met their demise.")
+      case l => Some(s"${l.length} colonists are dead")
+    }
+
+    val totalqueue = colony.queue.toList
+
+    val queueline = totalqueue match {
+      case Nil => "Nobody is queued up to join the colony."
+      case head :: Nil => s"Only $head is queued to join the colony."
+      case l if l.length < 5 => s"${showstring(totalqueue)} are waiting in line to join their doom. Eh, the colony."
+      case l => s"${showstring(l.take(3))} and ${l.length - 3} other viewers are waiting in line to join their doom. Eh, the colony."
+    }
+
+    ingame :: dead.foldLeft(List(queueline))((agg, dedline) => dedline :: agg)
+
   }
 
   def newcolony(oldcolony: Colony) =

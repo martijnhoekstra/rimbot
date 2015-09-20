@@ -139,7 +139,7 @@ class FGSquaredHandler {
               "!join, !join <names> (mod) !showcolony, !recruit (mod), !newcolony (mod), !reset (mod), !rimbot verbose (mod), !source")
           }
 
-        case "!showcolony" :: params => Task.delay { reply(show(colony).mkString(" ")) }
+        case "!showcolony" :: params => Task.delay { reply(showcompact(colony).mkString(" ")) }
 
         case "!source" :: _ => Task.delay {
           val msg = "Rimbot is free software licensed under the AGPL. You can download the source code of the software at https://github.com/martijnhoekstra/rimbot"
