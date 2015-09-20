@@ -22,7 +22,7 @@ case class Colony(val ingame: List[String], val ded: List[String], val queue: Qu
 object Colony {
   def showstring(seq: Seq[String]): String = {
     seq.toList match {
-      case last :: next :: tail => seq.reverse.tail.reverse.mkString(", ") ++ " and " ++ seq.head
+      case last :: next :: tail => seq.reverse.tail.reverse.mkString(", ") ++ " and " ++ seq.reverse.head
       case head :: Nil => head
       case _ => "nobody"
     }
