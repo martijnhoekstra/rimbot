@@ -117,12 +117,11 @@ class FGSquaredHandler {
           colony = Colony()
         }
 
-        case "!showcolony" :: params => Task.delay { reply(show(colony).mkString(" ")) }
-
         case "!rimbot" :: params =>
           if (params == "verbose" :: Nil) runmod(sender) {
             val parts = List(
               "I'm Rimbot, and I maintain the queue of people who want to be in the colony.",
+              "I'm free software, and you can download the source code at https://github.com/martijnhoekstra/rimbot",
               "I know the following commands:",
               "!join: you join the queue to join the colony",
               "!join <names>: (mod command) <names> all join the queue",
@@ -137,7 +136,14 @@ class FGSquaredHandler {
           }
           else Task.delay {
             reply("I'm Rimbot. I maintain the queue of people who want to be in the colony. I know the following commands: " +
-              "!join, !join <names> (mod) !showcolony, !recruit (mod), !newcolony (mod), !reset (mod), !rimbot verbose (mod)")
+              "!join, !join <names> (mod) !showcolony, !recruit (mod), !newcolony (mod), !reset (mod), !rimbot verbose (mod), !source")
+          }
+
+          case "!showcolony" :: params => Task.delay { reply(show(colony).mkString(" ")) }
+
+          case "!source" :: _ => Task.delay {
+            val msg = "Rimbot is free software licensed under the AGPL. You can download the source code of the software at https://github.com/martijnhoekstra/rimbot"
+            bot.sendMessage(sender, msg)
           }
 
         case _ => Task.now(Unit)
