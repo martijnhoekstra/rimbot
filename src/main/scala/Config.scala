@@ -19,19 +19,15 @@ package net.fgsquad.rimbot
 
 import argonaut._
 import Argonaut._
+import scala.util.Try
 
 case class Config(botname: Option[String], channel: Option[String], token: Option[String], verbose: Boolean)
 
 object Config {
+  import persist.FilePickle
 
-  def readConfig(path: String) = {
-
+  def readConfig(path: String): Try[Config] = {
     implicit def PersonCodecJson = casecodec4(Config.apply, Config.unapply)("botname", "channel", "token", "verbose")
-    try {
-      val str = scala.io.Source.fromFile("settings.json", "utf-8").getLines.mkString
-      str.decodeOption[Config]
-    } catch {
-      case _: Throwable => None
-    }
+    FilePickle.jsonpickle[Config].unpickle(path)
   }
 }

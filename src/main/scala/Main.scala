@@ -18,18 +18,33 @@
 package net.fgsquad.rimbot
 
 import jline.console.ConsoleReader
+import scala.util.Try
+import scala.util.Success
+import scala.util.Failure
 
 object Botrun {
-  def getConfig: Option[Config] = Config.readConfig("settings.json")
 
   def main(args: Array[String]) {
+    val settingsfile = "settings.json"
+
+    def getConfig: Try[Config] = Config.readConfig(settingsfile)
+
     var arglist = args.toList
 
-    val config = getConfig
     val nomask: Character = null
     val passmask = '*'
 
     val reader = new ConsoleReader()
+
+    val config = getConfig match {
+      case Success(cf) => Some(cf)
+      case Failure(er) => {
+        reader.println(s"faild to oppen settins file $settingsfile")
+        None
+      }
+    }
+
+    val colonyfile = "colony.json"
 
     val verbose = config.map(c => c.verbose).getOrElse(true)
 
@@ -60,11 +75,16 @@ object Botrun {
 
     setup.bot.connect(host, port, fulltoken);
 
-    val fg = new FGSquaredHandler
+    val colonypickler = persist.ColonyPickler.pickler
+
+    val ocolony = colonypickler.unpickle("colonyfile")
+
+    val fg = new FGSquaredHandler(ocolony.getOrElse(Colony()))
 
     setup.join(stream, fg.rcv);
 
     val exit = reader.readLine("press enter to exit")
+    colonypickler.pickle(fg.colony, colonyfile).recover { case ex => reader.println(s"failed to write out colony: ${ex.getMessage()}") }
 
     setup.bot.disconnect()
     setup.bot.dispose()
