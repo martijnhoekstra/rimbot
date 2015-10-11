@@ -99,6 +99,16 @@ class DoubleListQueue[+A](val in: List[A], val out: List[A]) extends Queue[A] {
 object Queue {
   def empty[A]: Queue[A] = EmptyQueue
   def apply[A](a: A): Queue[A] = new DoubleListQueue(Nil, List(a))
+
+  def takeFrom[A](queue: Queue[A], from: List[A]): Option[(A, Queue[A])] = {
+    queue.dequeue match {
+      case Some(a) if from.contains(a) => Some(a)
+      //Currently non-tail recursive. Look for a tail-recursive implementation (possibility: carry the head)
+      case Some(a) => takeFrom(a._2, from).map(r => (r._1, r._2.enqueue(a._1)))
+      case None => None
+    }
+
+  }
 }
 
 object EmptyQueue extends Queue[Nothing] {

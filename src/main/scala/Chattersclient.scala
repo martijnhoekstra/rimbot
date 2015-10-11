@@ -18,7 +18,10 @@
 package net.fgsquad.rimbot
 
 case class ChattersResponse(chatter_count: Int, chatters: Chatters)
-case class Chatters(moderators: List[String], staff: List[String], admins: List[String], global_mods: List[String], viewers: List[String])
+
+case class Chatters(moderators: List[String], staff: List[String], admins: List[String], global_mods: List[String], viewers: List[String]) {
+  def everyone = moderators ++ staff ++ admins ++ global_mods ++ viewers
+}
 
 object Chattersclient {
 
@@ -29,6 +32,7 @@ object Chattersclient {
   import argonaut._, Argonaut._
   import org.http4s.Uri._
   import scalaz.concurrent.Task
+  import org.http4s.ParseException
 
   implicit def ChattersCodec = casecodec5(Chatters.apply, Chatters.unapply)("moderators", "staff", "admins", "global_mods", "viewers")
 
@@ -37,16 +41,20 @@ object Chattersclient {
 
   implicit val decoder = jsonOf[ChattersResponse]
 
-  def moderators(channel: String): Task[List[String]] = {
-    val client = org.http4s.client.blaze.defaultClient
+  def moderators(channel: String): Task[List[String]] = chatters(channel).map(cr => cr.chatters.moderators)
 
-    val chatters = client(uri("http://tmi.twitch.tv/group/user/fgsquared/chatters")).flatMap {
+  def allchatters(channel: String) = chatters(channel).map(cr => cr.chatters)
+
+  def chatters(channel: String): Task[ChattersResponse] = {
+    val client = org.http4s.client.blaze.defaultClient
+    val chattersuri = org.http4s.Uri.fromString(s"http://tmi.twitch.tv/group/user/$channel/chatters").leftMap(pf => ParseException(pf))
+    val tchattersuri = Task.fromDisjunction(chattersuri)
+    val tresp = tchattersuri.flatMap(uri => client(uri))
+    tresp.flatMap {
       case Successful(resp) => resp.as[ChattersResponse]
       //case NotFound(resp)   => Task.now("Not Found!!!")
       //case resp             => Task.now("Failed: " + resp.status)
     }
-
-    chatters.map(cr => cr.chatters.moderators)
 
   }
 
