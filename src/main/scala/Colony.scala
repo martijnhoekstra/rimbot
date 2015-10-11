@@ -97,4 +97,9 @@ object Colony {
     colony.queue.dequeue.map { case (colonist, newqueue) => (colonist, new Colony(colonist :: colony.ingame, colony.ded, newqueue)) }
 
   def apply() = new Colony(Nil, Nil, Queue.empty)
+
+  def recruitFrom(colony: Colony, chatters: List[String]): Option[(String, Colony)] = {
+    val fromlist: Option[(String, Queue[String])] = Queue.takeFrom(colony.queue, chatters)
+    fromlist.map(sq => (sq._1, new Colony(sq._1 :: colony.ingame, colony.ded, sq._2))).orElse(recruit(colony))
+  }
 }

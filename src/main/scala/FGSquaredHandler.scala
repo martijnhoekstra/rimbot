@@ -24,17 +24,15 @@ import Colony._
 class FGSquaredHandler(startingcolony: Colony) {
 
   var colony: Colony = startingcolony
-  var mods: List[String] = List.empty[String]
 
   val rcv: MsgReceived = (bot: PircBot) => (channel: String) => {
-    def moderators = Chattersclient.moderators(channel.substring(1))
+    val stream = channel.substring(1)
+    def moderators = Chattersclient.moderators(stream)
+    def chatters = Chattersclient.allchatters(stream)
 
     def reply(msg: String) = bot.sendMessage(channel, msg)
 
-    def asMod[T](user: String) = Handling.asMod[T](bot, channel, moderators)(mods, user)
-
-    def runmod[T](user: String)(action: => T): Task[Option[T]] = asMod(user)(Task.delay(action)).map(t => {
-      mods = t._1
+    def runmod[T](user: String)(action: => T): Task[Option[T]] = Handling.asMod[T](bot, channel, moderators)(user)(Task.delay(action)).map(t => {
       t._2
     })
 
@@ -90,19 +88,25 @@ class FGSquaredHandler(startingcolony: Colony) {
           }
 
         case "!recruit" :: params => runmod(sender) {
-          val n = params.headOption.flatMap(parseInt).getOrElse(1)
+          chatters.map((ch: Chatters) => {
+            val inchannel = ch.everyone
+            val n = params.headOption.flatMap(parseInt).getOrElse(1)
 
-          val (newcolony, recruited) = (1 to n).foldLeft((colony, List.empty[String])) {
-            case ((col: Colony, recruits: List[String]), _) =>
-              recruit(col).foldLeft((col, recruits)) { case (_, (np, nc)) => (nc, np :: recruits) }
-          }
-          colony = newcolony
-          val message = recruited match {
-            case Nil => "no volunteers available"
-            case head :: second :: tail => (second :: tail).mkString(", ") + s" and $head step up and join the colony"
-            case colonist :: Nil => s"$colonist steps up and joins the colony"
-          }
-          reply(message)
+            val (newcolony, recruited) = (1 to n).foldLeft((colony, List.empty[String])) {
+              case ((col: Colony, recruits: List[String]), _) =>
+                recruit(col).foldLeft((col, recruits)) { case (_, (np, nc)) => (nc, np :: recruits) }
+            }
+
+            colony = newcolony
+            val message = recruited match {
+              case Nil => "no volunteers available"
+              case head :: second :: tail => (second :: tail).mkString(", ") + s" and $head step up and join the colony"
+              case colonist :: Nil => s"$colonist steps up and joins the colony"
+            }
+            reply(message)
+
+          })
+
         }
 
         case "!newcolony" :: params => runmod(sender) {
@@ -141,7 +145,7 @@ class FGSquaredHandler(startingcolony: Colony) {
 
         case "!source" :: _ => Task.delay {
           val msg = "Rimbot is free software licensed under the AGPL. You can download the source code of the software at https://github.com/martijnhoekstra/rimbot"
-          bot.sendMessage(sender, msg)
+          reply(msg)
         }
 
         case _ => Task.now(Unit)

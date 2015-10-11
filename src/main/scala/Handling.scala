@@ -21,10 +21,9 @@ import scalaz.concurrent.Task
 import org.jibble.pircbot._
 
 object Handling {
-  def asMod[T](bot: PircBot, channel: String, getmods: Task[List[String]]): (List[String], String) => Task[T] => Task[(List[String], Option[T])] =
-    (mods, user) => (taction) =>
-      if (mods.contains(user)) taction.map(t => (mods, Some(t)))
-      else getmods.flatMap(newmods => {
+  def asMod[T](bot: PircBot, channel: String, getmods: Task[List[String]]): String => Task[T] => Task[(List[String], Option[T])] =
+    user => (taction) =>
+      getmods.flatMap(newmods => {
         bot.log(s"new mods are $newmods")
         if (newmods.contains(user))
           taction.map(t => (newmods, Some(t)))

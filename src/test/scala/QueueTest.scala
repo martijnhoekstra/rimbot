@@ -62,4 +62,13 @@ object QueueTest extends SpecLite {
     }
   }
 
+  "dequeue from list takes only items from list" ! forAll { (q: Queue[Boolean], l: List[Boolean]) =>
+    {
+      Queue.takeFrom(q, l) match {
+        case Some(x) => l.contains(x) must_== (true)
+        case None => true must_== (true)
+      }
+    }
+  }
+
 }
